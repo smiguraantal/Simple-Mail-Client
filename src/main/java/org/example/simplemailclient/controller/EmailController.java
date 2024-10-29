@@ -1,11 +1,12 @@
-package org.example.controller;
+package org.example.simplemailclient.controller;
 
-import jakarta.mail.MessagingException;
-import org.example.service.EmailService;
+import org.example.simplemailclient.dto.EmailRequest;
+import org.example.simplemailclient.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -20,9 +21,8 @@ public class EmailController {
     }
 
     @PostMapping("/send")
-    public void sendEmail(@RequestParam("to") String to,
-                          @RequestParam("subject") String subject,
-                          @RequestParam("text") String text) throws MessagingException {
-        emailService.sendEmail(to, subject, text);
+    public ResponseEntity<String> sendEmail(@RequestBody EmailRequest emailRequest) {
+        emailService.sendEmail(emailRequest);
+        return ResponseEntity.ok("Email sent successfully!");
     }
 }

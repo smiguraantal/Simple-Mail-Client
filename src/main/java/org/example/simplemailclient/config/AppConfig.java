@@ -1,4 +1,4 @@
-package org.example.config;
+package org.example.simplemailclient.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +17,6 @@ public class AppConfig {
 
     @Value("${spring.mail.password}")
     private String password;
-
 
     @Bean
     public RestTemplate restTemplate() {
