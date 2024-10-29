@@ -20,9 +20,9 @@ public class EmailController {
     }
 
     @PostMapping("/send")
-    public void sendEmail(@RequestParam String to,
-                            @RequestParam String subject,
-                            @RequestParam String text) throws MessagingException {
+    public void sendEmail(@RequestParam("to") String to,
+                          @RequestParam("subject") String subject,
+                          @RequestParam("text") String text) throws MessagingException {
         emailService.sendEmail(to, subject, text);
     }
 }
