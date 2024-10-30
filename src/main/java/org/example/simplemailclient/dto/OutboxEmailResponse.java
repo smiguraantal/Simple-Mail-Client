@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OutboxEmailResponse {
 
+    private String id;
     private String to;
     private String subject;
     private String date;

@@ -7,8 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmailResponse {
+public class InboxEmailResponse {
 
+    private String id;
     private String from;
     private String subject;
     private String date;

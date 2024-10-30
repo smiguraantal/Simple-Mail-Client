@@ -10,7 +10,7 @@ import jakarta.mail.Store;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.example.simplemailclient.dto.EmailRequest;
-import org.example.simplemailclient.dto.EmailResponse;
+import org.example.simplemailclient.dto.InboxEmailResponse;
 import org.example.simplemailclient.dto.OutboxEmailResponse;
 import org.example.simplemailclient.exception.EmailSendingException;
 import org.example.simplemailclient.util.MailUtil;
@@ -70,11 +70,15 @@ public class EmailService {
             inbox.open(Folder.READ_ONLY);
 
             Message[] messages = inbox.getMessages();
-            List<EmailResponse> emailList = new ArrayList<>();
+            List<InboxEmailResponse> emailList = new ArrayList<>();
 
             for (int i = messages.length - 1; i >= Math.max(messages.length - 3, 0); i--) {
                 Message message = messages[i];
-                EmailResponse email = new EmailResponse();
+                InboxEmailResponse email = new InboxEmailResponse();
+
+                String[] messageId = message.getHeader("Message-ID");
+                email.setId(messageId[0]);
+
                 email.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());
                 email.setSubject(message.getSubject());
                 email.setDate(message.getSentDate().toString());
@@ -113,6 +117,10 @@ public class EmailService {
             for (int i = messages.length - 1; i >= Math.max(messages.length - 3, 0); i--) {
                 Message message = messages[i];
                 OutboxEmailResponse email = new OutboxEmailResponse();
+
+                String[] messageId = message.getHeader("Message-ID");
+                email.setId(messageId[0]);
+
                 email.setTo(((InternetAddress) message.getRecipients(Message.RecipientType.TO)[0]).getAddress());
                 email.setSubject(message.getSubject());
                 email.setDate(message.getSentDate().toString());
