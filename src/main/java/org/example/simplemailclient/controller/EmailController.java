@@ -28,7 +28,12 @@ public class EmailController {
     }
 
     @GetMapping("/inbox")
-    public String getEmails() {
-        return emailService.fetchEmails();
+    public String fetchInbox() {
+        return emailService.fetchInbox();
+    }
+
+    @GetMapping("/outbox")
+    public String fetchOutbox() {
+        return emailService.fetchOutbox();
     }
 }
