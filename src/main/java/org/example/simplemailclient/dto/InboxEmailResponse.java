@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InboxEmailResponse {
 
-    private String id;
+    private long uid;
     private String from;
     private String subject;
     private String date;
