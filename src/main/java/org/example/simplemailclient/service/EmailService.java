@@ -13,6 +13,7 @@ import org.example.simplemailclient.dto.EmailRequest;
 import org.example.simplemailclient.dto.EmailResponse;
 import org.example.simplemailclient.dto.OutboxEmailResponse;
 import org.example.simplemailclient.exception.EmailSendingException;
+import org.example.simplemailclient.util.MailUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -63,14 +64,7 @@ public class EmailService {
             Store store = session.getStore("imaps");
             store.connect("imap.gmail.com", username, password);
 
-            try {
-                Folder[] folders = store.getDefaultFolder().list("*");
-                for (Folder folder : folders) {
-                    System.out.println("Folder: " + folder.getName());
-                }
-            } catch (MessagingException e) {
-                e.printStackTrace();
-            }
+            MailUtil.printAllFolders(store);
 
             Folder inbox = store.getFolder("INBOX");
             inbox.open(Folder.READ_ONLY);
@@ -108,14 +102,7 @@ public class EmailService {
             Store store = session.getStore("imaps");
             store.connect("imap.gmail.com", username, password);
 
-            try {
-                Folder[] folders = store.getDefaultFolder().list("*");
-                for (Folder folder : folders) {
-                    System.out.println("Folder: " + folder.getName());
-                }
-            } catch (MessagingException e) {
-                e.printStackTrace();
-            }
+            MailUtil.printAllFolders(store);
 
             Folder inbox = store.getFolder("[Gmail]/Sent Mail");
             inbox.open(Folder.READ_ONLY);
