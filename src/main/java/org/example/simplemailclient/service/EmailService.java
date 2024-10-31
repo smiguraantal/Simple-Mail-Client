@@ -106,93 +106,66 @@ public class EmailService {
         }
     }
 
-    public String getEmailByUid(long uid) {
-        try {
-            Properties properties = new Properties();
-            properties.put("mail.store.protocol", "imaps");
-
-            Session session = Session.getDefaultInstance(properties);
-            IMAPStore store = (IMAPStore) session.getStore("imaps");
-            store.connect("imap.gmail.com", username, password);
-
-            IMAPFolder allMailFolder = (IMAPFolder) store.getFolder("INBOX");
-            if (!allMailFolder.isOpen()) {
-                allMailFolder.open(Folder.READ_ONLY);
-            }
-
-            Message message = allMailFolder.getMessageByUID(uid);
-            InboxEmailResponse email = new InboxEmailResponse();
-
-            email.setUid(uid);
-            email.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());
-            email.setTo(getAddressesAsString(message.getRecipients(Message.RecipientType.TO)));
-            email.setCc(getAddressesAsString(message.getRecipients(Message.RecipientType.CC)));
-            email.setBcc(getAddressesAsString(message.getRecipients(Message.RecipientType.BCC)));
-            email.setSubject(message.getSubject());
-            email.setSentDate(message.getSentDate() != null ? message.getSentDate().toString() : null);
-            email.setReceivedDate(message.getReceivedDate() != null ? message.getReceivedDate().toString() : null);
-            email.setAttachments(getAttachments(message));
-
-            allMailFolder.close(false);
-            store.close();
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(email);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Error fetching emails: " + e.getMessage(), e);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error processing JSON: " + e.getMessage(), e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public String fetchInbox() {
         try {
-            Properties properties = new Properties();
-            properties.put("mail.store.protocol", "imaps");
-
-            Session session = Session.getDefaultInstance(properties);
-            IMAPStore store = (IMAPStore) session.getStore("imaps");
-            store.connect("imap.gmail.com", username, password);
-
-            MailUtil.printAllFolders(store);
-
-            IMAPFolder inbox = (IMAPFolder) store.getFolder("INBOX");
-            inbox.open(Folder.READ_ONLY);
-
-            Message[] messages = inbox.getMessages();
+            IMAPFolder folder = openFolder("INBOX");
+            Message[] messages = folder.getMessages();
             List<InboxEmailResponse> emailList = new ArrayList<>();
 
             for (int i = messages.length - 1; i >= Math.max(messages.length - 3, 0); i--) {
-                Message message = messages[i];
-                InboxEmailResponse email = new InboxEmailResponse();
-
-                long uid = inbox.getUID(message);
-
-                email.setUid(uid);
-                email.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());
-                email.setTo(getAddressesAsString(message.getRecipients(Message.RecipientType.TO)));
-                email.setCc(getAddressesAsString(message.getRecipients(Message.RecipientType.CC)));
-                email.setBcc(getAddressesAsString(message.getRecipients(Message.RecipientType.BCC)));
-                email.setSubject(message.getSubject());
-                email.setSentDate(message.getSentDate() != null ? message.getSentDate().toString() : null);
-                email.setReceivedDate(message.getReceivedDate() != null ? message.getReceivedDate().toString() : null);
-                email.setAttachments(getAttachments(message));
-
+                InboxEmailResponse email = createEmailResponse(messages[i], folder);
                 emailList.add(email);
             }
 
-            inbox.close(false);
-            store.close();
+            folder.close(false);
 
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.writeValueAsString(emailList);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Error fetching emails: " + e.getMessage(), e);
-        } catch (IOException e) {
-            throw new RuntimeException("Error processing JSON: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching inbox emails: " + e.getMessage(), e);
         }
+    }
+
+    public String getEmailByUid(long uid) {
+        try {
+            IMAPFolder folder = openFolder("INBOX");
+            Message message = folder.getMessageByUID(uid);
+            InboxEmailResponse email = createEmailResponse(message, folder);
+
+            folder.close(false);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(email);
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching email by UID: " + e.getMessage(), e);
+        }
+    }
+
+    private IMAPFolder openFolder(String folderName) throws MessagingException {
+        Properties properties = new Properties();
+        properties.put("mail.store.protocol", "imaps");
+        Session session = Session.getDefaultInstance(properties);
+        IMAPStore store = (IMAPStore) session.getStore("imaps");
+        store.connect("imap.gmail.com", username, password);
+
+        IMAPFolder folder = (IMAPFolder) store.getFolder(folderName);
+        folder.open(Folder.READ_ONLY);
+        return folder;
+    }
+
+    private InboxEmailResponse createEmailResponse(Message message, IMAPFolder folder) throws MessagingException, IOException {
+        InboxEmailResponse email = new InboxEmailResponse();
+        long uid = folder.getUID(message);
+        email.setUid(uid);
+        email.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());
+        email.setTo(getAddressesAsString(message.getRecipients(Message.RecipientType.TO)));
+        email.setCc(getAddressesAsString(message.getRecipients(Message.RecipientType.CC)));
+        email.setBcc(getAddressesAsString(message.getRecipients(Message.RecipientType.BCC)));
+        email.setSubject(message.getSubject());
+        email.setSentDate(message.getSentDate() != null ? message.getSentDate().toString() : null);
+        email.setReceivedDate(message.getReceivedDate() != null ? message.getReceivedDate().toString() : null);
+        email.setAttachments(getAttachments(message));
+        return email;
     }
 
     private String getAddressesAsString(Address[] addresses) {
