@@ -1,5 +1,6 @@
 package org.example.simplemailclient.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.mail.imap.IMAPFolder;
 import com.sun.mail.imap.IMAPStore;
@@ -63,28 +64,16 @@ public class EmailService {
     }
 
     public String fetchOutbox() {
-        try {
-            IMAPFolder folder = openFolder("[Gmail]/Sent Mail");
-            Message[] messages = folder.getMessages();
-            List<EmailResponse> emailList = new ArrayList<>();
-
-            for (int i = messages.length - 1; i >= Math.max(messages.length - EMAIL_FETCH_LIMIT, 0); i--) {
-                EmailResponse email = createEmailResponse(messages[i], folder);
-                emailList.add(email);
-            }
-
-            folder.close(false);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(emailList);
-        } catch (Exception e) {
-            throw new RuntimeException("Error fetching outbox emails: " + e.getMessage(), e);
-        }
+        return fetchEmailsFromFolder("[Gmail]/Sent Mail");
     }
 
     public String fetchInbox() {
+        return fetchEmailsFromFolder("INBOX");
+    }
+
+    private String fetchEmailsFromFolder(String folderName) {
         try {
-            IMAPFolder folder = openFolder("INBOX");
+            IMAPFolder folder = openFolder(folderName);
             Message[] messages = folder.getMessages();
             List<EmailResponse> emailList = new ArrayList<>();
 
@@ -97,8 +86,13 @@ public class EmailService {
 
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.writeValueAsString(emailList);
-        } catch (Exception e) {
-            throw new RuntimeException("Error fetching inbox emails: " + e.getMessage(), e);
+
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error fetching emails from " + folderName + ": " + e.getMessage(), e);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error processing JSON for folder " + folderName + ": " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
