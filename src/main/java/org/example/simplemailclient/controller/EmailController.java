@@ -38,8 +38,8 @@ public class EmailController {
         return emailService.fetchOutbox();
     }
 
-    @GetMapping("/fetch/{uid}")
-    public String getEmailByUid(@PathVariable("uid") long uid) {
-        return emailService.getEmailByUid(uid);
-    }
+//    @GetMapping("/fetch/{uid}")
+//    public String getEmailByUid(@PathVariable("uid") long uid) {
+//        return emailService.getEmailByUid(uid);
+//    }
 }
