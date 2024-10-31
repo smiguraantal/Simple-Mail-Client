@@ -38,6 +38,11 @@ public class EmailController {
         return emailService.fetchOutbox();
     }
 
+    @GetMapping("/trash")
+    public String fetchTrash() {
+        return emailService.fetchTrash();
+    }
+
     @GetMapping("/fetch/inbox/{uid}")
     public String getEmailByUidInInbox (@PathVariable("uid") long uid) {
         return emailService.getEmailByUidInInbox(uid);
@@ -47,4 +52,10 @@ public class EmailController {
     public String getEmailByUidInOutbox (@PathVariable("uid") long uid) {
         return emailService.getEmailByUidInOutbox(uid);
     }
+
+    @GetMapping("/fetch/trash/{uid}")
+    public String getEmailByUidInTrash (@PathVariable("uid") long uid) {
+        return emailService.getEmailByUidInTrash(uid);
+    }
+
 }

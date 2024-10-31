@@ -17,6 +17,7 @@ import jakarta.mail.internet.MimeMessage;
 import org.example.simplemailclient.dto.EmailRequest;
 import org.example.simplemailclient.dto.EmailResponse;
 import org.example.simplemailclient.exception.EmailSendingException;
+import org.example.simplemailclient.util.MailUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -45,6 +46,7 @@ public class EmailService {
 
     public static final String FOLDER_INBOX = "INBOX";
     public static final String FOLDER_OUTBOX = "[Gmail]/Sent Mail";
+    public static final String FOLDER_TRASH = "[Gmail]/Trash";
 
     @Autowired
     public EmailService(JavaMailSender mailSender) {
@@ -66,12 +68,16 @@ public class EmailService {
         }
     }
 
+    public String fetchInbox() {
+        return fetchEmailsFromFolder(FOLDER_INBOX);
+    }
+
     public String fetchOutbox() {
         return fetchEmailsFromFolder(FOLDER_OUTBOX);
     }
 
-    public String fetchInbox() {
-        return fetchEmailsFromFolder(FOLDER_INBOX);
+    public String fetchTrash() {
+        return fetchEmailsFromFolder(FOLDER_TRASH);
     }
 
     private String fetchEmailsFromFolder(String folderName) {
@@ -107,6 +113,10 @@ public class EmailService {
         return getEmailByUid(uid, FOLDER_OUTBOX);
     }
 
+    public String getEmailByUidInTrash(long uid) {
+        return getEmailByUid(uid, FOLDER_TRASH);
+    }
+
     public String getEmailByUid(long uid, String folderName) {
         try {
             IMAPFolder folder = openFolder(folderName);
@@ -128,6 +138,8 @@ public class EmailService {
         Session session = Session.getDefaultInstance(properties);
         IMAPStore store = (IMAPStore) session.getStore("imaps");
         store.connect("imap.gmail.com", username, password);
+
+        MailUtil.printAllFolders(store);
 
         IMAPFolder folder = (IMAPFolder) store.getFolder(folderName);
         folder.open(Folder.READ_ONLY);
