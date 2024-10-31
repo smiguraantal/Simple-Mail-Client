@@ -40,6 +40,8 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    private final static int EMAIL_FETCH_LIMIT = 3;
+
     @Autowired
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
@@ -66,7 +68,7 @@ public class EmailService {
             Message[] messages = folder.getMessages();
             List<EmailResponse> emailList = new ArrayList<>();
 
-            for (int i = messages.length - 1; i >= Math.max(messages.length - 3, 0); i--) {
+            for (int i = messages.length - 1; i >= Math.max(messages.length - EMAIL_FETCH_LIMIT, 0); i--) {
                 EmailResponse email = createEmailResponse(messages[i], folder);
                 emailList.add(email);
             }
@@ -86,7 +88,7 @@ public class EmailService {
             Message[] messages = folder.getMessages();
             List<EmailResponse> emailList = new ArrayList<>();
 
-            for (int i = messages.length - 1; i >= Math.max(messages.length - 3, 0); i--) {
+            for (int i = messages.length - 1; i >= Math.max(messages.length - EMAIL_FETCH_LIMIT, 0); i--) {
                 EmailResponse email = createEmailResponse(messages[i], folder);
                 emailList.add(email);
             }
