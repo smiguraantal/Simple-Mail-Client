@@ -43,19 +43,28 @@ public class EmailController {
         return emailService.fetchTrash();
     }
 
+    @GetMapping("/drafts")
+    public String fetchDrafts() {
+        return emailService.fetchDrafts();
+    }
+
     @GetMapping("/fetch/inbox/{uid}")
-    public String getEmailByUidInInbox (@PathVariable("uid") long uid) {
+    public String getEmailByUidInInbox(@PathVariable("uid") long uid) {
         return emailService.getEmailByUidInInbox(uid);
     }
 
     @GetMapping("/fetch/outbox/{uid}")
-    public String getEmailByUidInOutbox (@PathVariable("uid") long uid) {
+    public String getEmailByUidInOutbox(@PathVariable("uid") long uid) {
         return emailService.getEmailByUidInOutbox(uid);
     }
 
     @GetMapping("/fetch/trash/{uid}")
-    public String getEmailByUidInTrash (@PathVariable("uid") long uid) {
+    public String getEmailByUidInTrash(@PathVariable("uid") long uid) {
         return emailService.getEmailByUidInTrash(uid);
     }
 
+    @GetMapping("/fetch/drafts/{uid}")
+    public String getEmailByUidInDrafts(@PathVariable("uid") long uid) {
+        return emailService.getEmailByUidInDrafts(uid);
+    }
 }

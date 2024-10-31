@@ -47,6 +47,7 @@ public class EmailService {
     public static final String FOLDER_INBOX = "INBOX";
     public static final String FOLDER_OUTBOX = "[Gmail]/Sent Mail";
     public static final String FOLDER_TRASH = "[Gmail]/Trash";
+    public static final String FOLDER_DRAFTS = "[Gmail]/Drafts";
 
     @Autowired
     public EmailService(JavaMailSender mailSender) {
@@ -78,6 +79,10 @@ public class EmailService {
 
     public String fetchTrash() {
         return fetchEmailsFromFolder(FOLDER_TRASH);
+    }
+
+    public String fetchDrafts() {
+        return fetchEmailsFromFolder(FOLDER_DRAFTS);
     }
 
     private String fetchEmailsFromFolder(String folderName) {
@@ -115,6 +120,10 @@ public class EmailService {
 
     public String getEmailByUidInTrash(long uid) {
         return getEmailByUid(uid, FOLDER_TRASH);
+    }
+
+    public String getEmailByUidInDrafts(long uid) {
+        return getEmailByUid(uid, FOLDER_DRAFTS);
     }
 
     public String getEmailByUid(long uid, String folderName) {
