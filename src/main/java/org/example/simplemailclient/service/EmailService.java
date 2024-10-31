@@ -77,11 +77,7 @@ public class EmailService {
                 Message message = messages[i];
                 InboxEmailResponse email = new InboxEmailResponse();
 
-//                String[] messageId = message.getHeader("Message-ID");
-//                email.setUid(messageId[0]);
-
                 long uid = inbox.getUID(message);
-                System.out.println("Az üzenet UID-ja: " + uid);
 
                 email.setUid(uid);
                 email.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());
@@ -123,9 +119,6 @@ public class EmailService {
                 Message message = messages[i];
                 OutboxEmailResponse email = new OutboxEmailResponse();
 
-//                String[] messageId = message.getHeader("Message-ID");
-//                email.setUid(messageId[0]);
-
                 long uid = outbox.getUID(message);
                 System.out.println("Az üzenet UID-ja: " + uid);
 
@@ -148,7 +141,7 @@ public class EmailService {
         }
     }
 
-    public String fetchEmailSubjectByUid(long uid) {
+    public String getEmailByUid(long uid) {
         try {
             Properties properties = new Properties();
             properties.put("mail.store.protocol", "imaps");
@@ -163,14 +156,22 @@ public class EmailService {
             }
 
             Message message = allMailFolder.getMessageByUID(uid);
-            String subject = (message != null) ? message.getSubject() : "Üzenet nem található az adott UID-hoz";
+            InboxEmailResponse email = new InboxEmailResponse();
+
+            email.setUid(uid);
+            email.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());
+            email.setSubject(message.getSubject());
+            email.setDate(message.getSentDate().toString());
 
             allMailFolder.close(false);
             store.close();
 
-            return subject;
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(email);
         } catch (MessagingException e) {
-            throw new RuntimeException("Hiba történt az UID alapú keresés során: " + e.getMessage(), e);
+            throw new RuntimeException("Error fetching emails: " + e.getMessage(), e);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error processing JSON: " + e.getMessage(), e);
         }
     }
 }
