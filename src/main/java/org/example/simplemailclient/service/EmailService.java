@@ -106,39 +106,46 @@ public class EmailService {
         }
     }
 
-//    public String getEmailByUid(long uid) {
-//        try {
-//            Properties properties = new Properties();
-//            properties.put("mail.store.protocol", "imaps");
-//
-//            Session session = Session.getDefaultInstance(properties);
-//            IMAPStore store = (IMAPStore) session.getStore("imaps");
-//            store.connect("imap.gmail.com", username, password);
-//
-//            IMAPFolder allMailFolder = (IMAPFolder) store.getFolder("INBOX");
-//            if (!allMailFolder.isOpen()) {
-//                allMailFolder.open(Folder.READ_ONLY);
-//            }
-//
-//            Message message = allMailFolder.getMessageByUID(uid);
-//            InboxEmailResponse email = new InboxEmailResponse();
-//
-//            email.setUid(uid);
-//            email.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());
-//            email.setSubject(message.getSubject());
-//            email.setDate(message.getSentDate().toString());
-//
-//            allMailFolder.close(false);
-//            store.close();
-//
-//            ObjectMapper objectMapper = new ObjectMapper();
-//            return objectMapper.writeValueAsString(email);
-//        } catch (MessagingException e) {
-//            throw new RuntimeException("Error fetching emails: " + e.getMessage(), e);
-//        } catch (JsonProcessingException e) {
-//            throw new RuntimeException("Error processing JSON: " + e.getMessage(), e);
-//        }
-//    }
+    public String getEmailByUid(long uid) {
+        try {
+            Properties properties = new Properties();
+            properties.put("mail.store.protocol", "imaps");
+
+            Session session = Session.getDefaultInstance(properties);
+            IMAPStore store = (IMAPStore) session.getStore("imaps");
+            store.connect("imap.gmail.com", username, password);
+
+            IMAPFolder allMailFolder = (IMAPFolder) store.getFolder("INBOX");
+            if (!allMailFolder.isOpen()) {
+                allMailFolder.open(Folder.READ_ONLY);
+            }
+
+            Message message = allMailFolder.getMessageByUID(uid);
+            InboxEmailResponse email = new InboxEmailResponse();
+
+            email.setUid(uid);
+            email.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());
+            email.setTo(getAddressesAsString(message.getRecipients(Message.RecipientType.TO)));
+            email.setCc(getAddressesAsString(message.getRecipients(Message.RecipientType.CC)));
+            email.setBcc(getAddressesAsString(message.getRecipients(Message.RecipientType.BCC)));
+            email.setSubject(message.getSubject());
+            email.setSentDate(message.getSentDate() != null ? message.getSentDate().toString() : null);
+            email.setReceivedDate(message.getReceivedDate() != null ? message.getReceivedDate().toString() : null);
+            email.setAttachments(getAttachments(message));
+
+            allMailFolder.close(false);
+            store.close();
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(email);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error fetching emails: " + e.getMessage(), e);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error processing JSON: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public String fetchInbox() {
         try {
