@@ -147,4 +147,30 @@ public class EmailService {
             throw new RuntimeException("Error processing JSON: " + e.getMessage(), e);
         }
     }
+
+    public String fetchEmailSubjectByUid(long uid) {
+        try {
+            Properties properties = new Properties();
+            properties.put("mail.store.protocol", "imaps");
+
+            Session session = Session.getDefaultInstance(properties);
+            IMAPStore store = (IMAPStore) session.getStore("imaps");
+            store.connect("imap.gmail.com", username, password);
+
+            IMAPFolder allMailFolder = (IMAPFolder) store.getFolder("INBOX");
+            if (!allMailFolder.isOpen()) {
+                allMailFolder.open(Folder.READ_ONLY);
+            }
+
+            Message message = allMailFolder.getMessageByUID(uid);
+            String subject = (message != null) ? message.getSubject() : "Üzenet nem található az adott UID-hoz";
+
+            allMailFolder.close(false);
+            store.close();
+
+            return subject;
+        } catch (MessagingException e) {
+            throw new RuntimeException("Hiba történt az UID alapú keresés során: " + e.getMessage(), e);
+        }
+    }
 }
