@@ -1,6 +1,5 @@
 package org.example.simplemailclient.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.mail.imap.IMAPFolder;
 import com.sun.mail.imap.IMAPStore;
@@ -15,10 +14,8 @@ import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.example.simplemailclient.dto.EmailRequest;
-import org.example.simplemailclient.dto.InboxEmailResponse;
-import org.example.simplemailclient.dto.OutboxEmailResponse;
+import org.example.simplemailclient.dto.EmailResponse;
 import org.example.simplemailclient.exception.EmailSendingException;
-import org.example.simplemailclient.util.MailUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -65,44 +62,21 @@ public class EmailService {
 
     public String fetchOutbox() {
         try {
-            Properties properties = new Properties();
-            properties.put("mail.store.protocol", "imaps");
-
-            Session session = Session.getDefaultInstance(properties);
-            IMAPStore store = (IMAPStore) session.getStore("imaps");
-            store.connect("imap.gmail.com", username, password);
-
-            MailUtil.printAllFolders(store);
-
-            IMAPFolder outbox = (IMAPFolder) store.getFolder("[Gmail]/Sent Mail");
-            outbox.open(Folder.READ_ONLY);
-
-            Message[] messages = outbox.getMessages();
-            List<OutboxEmailResponse> emailList = new ArrayList<>();
+            IMAPFolder folder = openFolder("[Gmail]/Sent Mail");
+            Message[] messages = folder.getMessages();
+            List<EmailResponse> emailList = new ArrayList<>();
 
             for (int i = messages.length - 1; i >= Math.max(messages.length - 3, 0); i--) {
-                Message message = messages[i];
-                OutboxEmailResponse email = new OutboxEmailResponse();
-
-                long uid = outbox.getUID(message);
-                System.out.println("Az üzenet UID-ja: " + uid);
-
-                email.setUid(uid);
-                email.setTo(((InternetAddress) message.getRecipients(Message.RecipientType.TO)[0]).getAddress());
-                email.setSubject(message.getSubject());
-                email.setDate(message.getSentDate().toString());
+                EmailResponse email = createEmailResponse(messages[i], folder);
                 emailList.add(email);
             }
 
-            outbox.close(false);
-            store.close();
+            folder.close(false);
 
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.writeValueAsString(emailList);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Error fetching emails: " + e.getMessage(), e);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error processing JSON: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching outbox emails: " + e.getMessage(), e);
         }
     }
 
@@ -110,10 +84,10 @@ public class EmailService {
         try {
             IMAPFolder folder = openFolder("INBOX");
             Message[] messages = folder.getMessages();
-            List<InboxEmailResponse> emailList = new ArrayList<>();
+            List<EmailResponse> emailList = new ArrayList<>();
 
             for (int i = messages.length - 1; i >= Math.max(messages.length - 3, 0); i--) {
-                InboxEmailResponse email = createEmailResponse(messages[i], folder);
+                EmailResponse email = createEmailResponse(messages[i], folder);
                 emailList.add(email);
             }
 
@@ -130,7 +104,7 @@ public class EmailService {
         try {
             IMAPFolder folder = openFolder("INBOX");
             Message message = folder.getMessageByUID(uid);
-            InboxEmailResponse email = createEmailResponse(message, folder);
+            EmailResponse email = createEmailResponse(message, folder);
 
             folder.close(false);
 
@@ -153,8 +127,8 @@ public class EmailService {
         return folder;
     }
 
-    private InboxEmailResponse createEmailResponse(Message message, IMAPFolder folder) throws MessagingException, IOException {
-        InboxEmailResponse email = new InboxEmailResponse();
+    private EmailResponse createEmailResponse(Message message, IMAPFolder folder) throws MessagingException, IOException {
+        EmailResponse email = new EmailResponse();
         long uid = folder.getUID(message);
         email.setUid(uid);
         email.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());

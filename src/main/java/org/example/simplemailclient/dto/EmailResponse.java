@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InboxEmailResponse {
+public class EmailResponse {
 
     private long uid;
     private String from;
