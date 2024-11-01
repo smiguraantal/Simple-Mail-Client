@@ -67,4 +67,9 @@ public class EmailController {
     public String getEmailByUidInDrafts(@PathVariable("uid") long uid) {
         return emailService.getEmailByUidInDrafts(uid);
     }
+
+    @GetMapping("/inbox/unread")
+    public String fetchInboxUnread() {
+        return emailService.fetchInboxUnread();
+    }
 }

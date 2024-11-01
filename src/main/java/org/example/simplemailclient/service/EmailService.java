@@ -6,6 +6,7 @@ import com.sun.mail.imap.IMAPFolder;
 import com.sun.mail.imap.IMAPStore;
 import jakarta.mail.Address;
 import jakarta.mail.BodyPart;
+import jakarta.mail.Flags;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
@@ -14,6 +15,7 @@ import jakarta.mail.Part;
 import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.search.FlagTerm;
 import org.example.simplemailclient.dto.EmailRequest;
 import org.example.simplemailclient.dto.EmailResponse;
 import org.example.simplemailclient.exception.EmailSendingException;
@@ -109,6 +111,30 @@ public class EmailService {
             throw new RuntimeException(e);
         }
     }
+
+    public String fetchInboxUnread() {
+        try {
+            IMAPFolder folder = openFolder("INBOX");
+
+            FlagTerm unseenFlagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), false);
+
+            Message[] messages = folder.search(unseenFlagTerm);
+            List<EmailResponse> emailList = new ArrayList<>();
+
+            for (int i = messages.length - 1; i >= Math.max(messages.length - EMAIL_FETCH_LIMIT, 0); i--) {
+                EmailResponse email = createEmailResponse(messages[i], folder);
+                emailList.add(email);
+            }
+
+            folder.close(false);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(emailList);
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching unread inbox emails: " + e.getMessage(), e);
+        }
+    }
+
 
     public String getEmailByUidInInbox(long uid) {
         return getEmailByUid(uid, FOLDER_INBOX);
