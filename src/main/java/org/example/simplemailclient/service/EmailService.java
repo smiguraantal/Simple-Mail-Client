@@ -112,7 +112,7 @@ public class EmailService {
         }
     }
 
-    public String fetchInboxMessages(boolean isRead) {
+    public String fetchInboxStatus(boolean isRead) {
         try {
             IMAPFolder folder = openFolder("INBOX");
 

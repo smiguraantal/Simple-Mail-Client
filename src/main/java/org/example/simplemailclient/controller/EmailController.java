@@ -29,10 +29,10 @@ public class EmailController {
         return ResponseEntity.ok("Email sent successfully!");
     }
 
-//    @GetMapping("/inbox")
-//    public String fetchInbox() {
-//        return emailService.fetchInbox();
-//    }
+    @GetMapping("/inbox")
+    public String fetchInbox() {
+        return emailService.fetchInbox();
+    }
 
     @GetMapping("/outbox")
     public String fetchOutbox() {
@@ -69,8 +69,8 @@ public class EmailController {
         return emailService.getEmailByUidInDrafts(uid);
     }
 
-    @GetMapping("/inbox")
-    public String fetchInboxMessages(@RequestParam("isRead") boolean isRead) {
-        return emailService.fetchInboxMessages(isRead);
+    @GetMapping("/inbox/status")
+    public String fetchInboxStatus(@RequestParam("isRead") boolean isRead) {
+        return emailService.fetchInboxStatus(isRead);
     }
 }
