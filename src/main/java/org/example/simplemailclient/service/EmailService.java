@@ -112,11 +112,11 @@ public class EmailService {
         }
     }
 
-    public String fetchInboxUnread() {
+    public String fetchInboxMessages(boolean isRead) {
         try {
             IMAPFolder folder = openFolder("INBOX");
 
-            FlagTerm unseenFlagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), false);
+            FlagTerm unseenFlagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), isRead);
 
             Message[] messages = folder.search(unseenFlagTerm);
             List<EmailResponse> emailList = new ArrayList<>();

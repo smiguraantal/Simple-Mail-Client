@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,10 +29,10 @@ public class EmailController {
         return ResponseEntity.ok("Email sent successfully!");
     }
 
-    @GetMapping("/inbox")
-    public String fetchInbox() {
-        return emailService.fetchInbox();
-    }
+//    @GetMapping("/inbox")
+//    public String fetchInbox() {
+//        return emailService.fetchInbox();
+//    }
 
     @GetMapping("/outbox")
     public String fetchOutbox() {
@@ -68,8 +69,8 @@ public class EmailController {
         return emailService.getEmailByUidInDrafts(uid);
     }
 
-    @GetMapping("/inbox/unread")
-    public String fetchInboxUnread() {
-        return emailService.fetchInboxUnread();
+    @GetMapping("/inbox")
+    public String fetchInboxMessages(@RequestParam("isRead") boolean isRead) {
+        return emailService.fetchInboxMessages(isRead);
     }
 }
