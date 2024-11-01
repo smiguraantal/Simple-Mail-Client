@@ -80,4 +80,9 @@ public class EmailController {
             @RequestParam("isRead") boolean isRead) {
         return emailService.fetchEmailsFromFolderByReadStatus(folder, isRead);
     }
+
+    @GetMapping("/fetch/inbox/text/{uid}")
+    public String getTextByUidInInbox(@PathVariable("uid") long uid) {
+        return emailService.getTextByUidInInbox(uid);
+    }
 }
