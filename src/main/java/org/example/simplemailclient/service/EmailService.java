@@ -135,6 +135,33 @@ public class EmailService {
         }
     }
 
+    public String fetchEmailsFromFolderByReadStatus(String folderName, boolean isRead) {
+        try {
+            IMAPFolder folder = openFolder(folderName);
+
+            FlagTerm unseenFlagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), isRead);
+
+            Message[] messages = folder.search(unseenFlagTerm);
+            List<EmailResponse> emailList = new ArrayList<>();
+
+            for (int i = messages.length - 1; i >= Math.max(messages.length - EMAIL_FETCH_LIMIT, 0); i--) {
+                EmailResponse email = createEmailResponse(messages[i], folder);
+                emailList.add(email);
+            }
+
+            folder.close(false);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(emailList);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error fetching emails from " + folderName + ": " + e.getMessage(), e);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error processing JSON for folder " + folderName + ": " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public String getEmailByUidInInbox(long uid) {
         return getEmailByUid(uid, FOLDER_INBOX);

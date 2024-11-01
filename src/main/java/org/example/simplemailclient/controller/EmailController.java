@@ -73,4 +73,11 @@ public class EmailController {
     public String fetchInboxStatus(@RequestParam("isRead") boolean isRead) {
         return emailService.fetchInboxStatus(isRead);
     }
+
+    @GetMapping("/emails")
+    public String fetchEmailsFromFolderByReadStatus(
+            @RequestParam("folder") String folder,
+            @RequestParam("isRead") boolean isRead) {
+        return emailService.fetchEmailsFromFolderByReadStatus(folder, isRead);
+    }
 }
