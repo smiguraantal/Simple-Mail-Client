@@ -12,6 +12,7 @@ import java.util.List;
 public class EmailRequest {
 
     private List<String> to;
+    private List<String> cc;
     private String subject;
     private String text;
 }

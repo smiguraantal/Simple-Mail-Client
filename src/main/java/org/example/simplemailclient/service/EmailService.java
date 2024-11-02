@@ -63,6 +63,11 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
             helper.setTo(emailRequest.getTo().toArray(new String[0]));
+
+            if (emailRequest.getCc() != null && !emailRequest.getCc().isEmpty()) {
+                helper.setCc(emailRequest.getCc().toArray(new String[0]));
+            }
+
             helper.setSubject(emailRequest.getSubject());
             helper.setText(emailRequest.getText(), false);
 
