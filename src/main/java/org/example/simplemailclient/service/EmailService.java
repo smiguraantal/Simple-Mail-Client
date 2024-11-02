@@ -1,6 +1,5 @@
 package org.example.simplemailclient.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.mail.imap.IMAPFolder;
 import com.sun.mail.imap.IMAPStore;
@@ -46,8 +45,6 @@ public class EmailService {
 
     private final static int EMAIL_FETCH_LIMIT = 3;
 
-    public static final String FOLDER_INBOX = "INBOX";
-
     @Autowired
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
@@ -81,75 +78,35 @@ public class EmailService {
         try {
             IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
             Message[] messages = folder.getMessages();
-            List<EmailResponse> emailList = new ArrayList<>();
-
-            for (int i = messages.length - 1; i >= Math.max(messages.length - EMAIL_FETCH_LIMIT, 0); i--) {
-                EmailResponse email = createEmailResponse(messages[i], folder);
-                emailList.add(email);
-            }
-
-            folder.close(false);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(emailList);
-
-        } catch (MessagingException e) {
+            return convertMessagesToJson(messages, folder);
+        } catch (MessagingException | IOException e) {
             throw new RuntimeException("Error fetching emails from " + folderName + ": " + e.getMessage(), e);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error processing JSON for folder " + folderName + ": " + e.getMessage(), e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
-    public String fetchInboxStatus(boolean isRead) {
-        try {
-            IMAPFolder folder = openFolder("INBOX", Folder.READ_ONLY);
-
-            FlagTerm unseenFlagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), isRead);
-
-            Message[] messages = folder.search(unseenFlagTerm);
-            List<EmailResponse> emailList = new ArrayList<>();
-
-            for (int i = messages.length - 1; i >= Math.max(messages.length - EMAIL_FETCH_LIMIT, 0); i--) {
-                EmailResponse email = createEmailResponse(messages[i], folder);
-                emailList.add(email);
-            }
-
-            folder.close(false);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(emailList);
-        } catch (Exception e) {
-            throw new RuntimeException("Error fetching unread inbox emails: " + e.getMessage(), e);
-        }
-    }
-
-    public String fetchEmailsFromFolderByReadStatus(String folderName, boolean isRead) {
+    public String fetchEmailsFromFolderByReadStatus(String folderName, boolean seen) {
         try {
             IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
-
-            FlagTerm unseenFlagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), isRead);
-
-            Message[] messages = folder.search(unseenFlagTerm);
-            List<EmailResponse> emailList = new ArrayList<>();
-
-            for (int i = messages.length - 1; i >= Math.max(messages.length - EMAIL_FETCH_LIMIT, 0); i--) {
-                EmailResponse email = createEmailResponse(messages[i], folder);
-                emailList.add(email);
-            }
-
-            folder.close(false);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(emailList);
-        } catch (MessagingException e) {
+            FlagTerm flagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), seen);
+            Message[] messages = folder.search(flagTerm);
+            return convertMessagesToJson(messages, folder);
+        } catch (MessagingException | IOException e) {
             throw new RuntimeException("Error fetching emails from " + folderName + ": " + e.getMessage(), e);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error processing JSON for folder " + folderName + ": " + e.getMessage(), e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
+    }
+
+    private String convertMessagesToJson(Message[] messages, IMAPFolder folder) throws MessagingException, IOException {
+        List<EmailResponse> emailList = new ArrayList<>();
+
+        for (int i = messages.length - 1; i >= Math.max(messages.length - EMAIL_FETCH_LIMIT, 0); i--) {
+            EmailResponse email = createEmailResponse(messages[i], folder);
+            emailList.add(email);
+        }
+
+        folder.close(false);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(emailList);
     }
 
     public String getEmailByUidInFolder(long uid, String folderName) {
@@ -217,10 +174,6 @@ public class EmailService {
         return attachments;
     }
 
-    public String getHtmlContentByUidInInbox(long uid) {
-        return getHtmlContentByUid(uid, FOLDER_INBOX);
-    }
-
     public String getHtmlContentByUid(long uid, String folderName) {
         try {
             IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
@@ -260,5 +213,4 @@ public class EmailService {
             throw new RuntimeException("Error marking email as " + (seen ? "read" : "unread") + ": " + e.getMessage(), e);
         }
     }
-
 }

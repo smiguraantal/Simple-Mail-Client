@@ -23,12 +23,6 @@ public class EmailController {
         this.emailService = emailService;
     }
 
-    @PostMapping("/send")
-    public ResponseEntity<String> sendEmail(@RequestBody EmailRequest emailRequest) {
-        emailService.sendEmail(emailRequest);
-        return ResponseEntity.ok("Email sent successfully!");
-    }
-
     @GetMapping("/folder")
     public String fetchEmailsFromFolder(@RequestParam("folderName") String folderName) {
         return emailService.fetchEmailsFromFolder(folderName);
@@ -39,21 +33,20 @@ public class EmailController {
         return emailService.getEmailByUidInFolder(uid, folderName);
     }
 
-    @GetMapping("/inbox/status")
-    public String fetchInboxStatus(@RequestParam("isRead") boolean isRead) {
-        return emailService.fetchInboxStatus(isRead);
+    @GetMapping("/folder/read-status")
+    public String fetchEmailsFromFolderByReadStatus(@RequestParam("folder") String folder, @RequestParam("seen") boolean seen) {
+        return emailService.fetchEmailsFromFolderByReadStatus(folder, seen);
     }
 
-    @GetMapping("/emails")
-    public String fetchEmailsFromFolderByReadStatus(
-            @RequestParam("folder") String folder,
-            @RequestParam("isRead") boolean isRead) {
-        return emailService.fetchEmailsFromFolderByReadStatus(folder, isRead);
+    @GetMapping("/fetch/html-content/{uid}")
+    public String getHtmlContentByUid(@PathVariable("uid") long uid, @RequestParam("folderName") String folderName) {
+        return emailService.getHtmlContentByUid(uid, folderName);
     }
 
-    @GetMapping("/fetch/inbox/html-content/{uid}")
-    public String getHtmlContentByUidInInbox(@PathVariable("uid") long uid) {
-        return emailService.getHtmlContentByUidInInbox(uid);
+    @PostMapping("/send")
+    public ResponseEntity<String> sendEmail(@RequestBody EmailRequest emailRequest) {
+        emailService.sendEmail(emailRequest);
+        return ResponseEntity.ok("Email sent successfully!");
     }
 
     @PostMapping("/set-read-status/{uid}")
