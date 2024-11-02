@@ -80,23 +80,7 @@ public class EmailService {
         }
     }
 
-    public String fetchInbox() {
-        return fetchEmailsFromFolder(FOLDER_INBOX);
-    }
-
-    public String fetchOutbox() {
-        return fetchEmailsFromFolder(FOLDER_OUTBOX);
-    }
-
-    public String fetchTrash() {
-        return fetchEmailsFromFolder(FOLDER_TRASH);
-    }
-
-    public String fetchDrafts() {
-        return fetchEmailsFromFolder(FOLDER_DRAFTS);
-    }
-
-    private String fetchEmailsFromFolder(String folderName) {
+    public String fetchEmailsFromFolder(String folderName) {
         try {
             IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
             Message[] messages = folder.getMessages();

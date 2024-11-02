@@ -29,25 +29,12 @@ public class EmailController {
         return ResponseEntity.ok("Email sent successfully!");
     }
 
-    @GetMapping("/inbox")
-    public String fetchInbox() {
-        return emailService.fetchInbox();
+    @GetMapping("/folder")
+    public String fetchEmailsFromFolder(@RequestParam("folderName") String folderName) {
+        return emailService.fetchEmailsFromFolder(folderName);
     }
 
-    @GetMapping("/outbox")
-    public String fetchOutbox() {
-        return emailService.fetchOutbox();
-    }
-
-    @GetMapping("/trash")
-    public String fetchTrash() {
-        return emailService.fetchTrash();
-    }
-
-    @GetMapping("/drafts")
-    public String fetchDrafts() {
-        return emailService.fetchDrafts();
-    }
+    // ---------------------------
 
     @GetMapping("/fetch/inbox/{uid}")
     public String getEmailByUidInInbox(@PathVariable("uid") long uid) {
@@ -68,6 +55,8 @@ public class EmailController {
     public String getEmailByUidInDrafts(@PathVariable("uid") long uid) {
         return emailService.getEmailByUidInDrafts(uid);
     }
+
+    // ---------------------------
 
     @GetMapping("/inbox/status")
     public String fetchInboxStatus(@RequestParam("isRead") boolean isRead) {
