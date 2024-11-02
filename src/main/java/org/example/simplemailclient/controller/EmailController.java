@@ -34,29 +34,10 @@ public class EmailController {
         return emailService.fetchEmailsFromFolder(folderName);
     }
 
-    // ---------------------------
-
-    @GetMapping("/fetch/inbox/{uid}")
-    public String getEmailByUidInInbox(@PathVariable("uid") long uid) {
-        return emailService.getEmailByUidInInbox(uid);
+    @GetMapping("/fetch/{uid}")
+    public String getEmailByUidInFolder(@PathVariable("uid") long uid, @RequestParam("folderName") String folderName) {
+        return emailService.getEmailByUidInFolder(uid, folderName);
     }
-
-    @GetMapping("/fetch/outbox/{uid}")
-    public String getEmailByUidInOutbox(@PathVariable("uid") long uid) {
-        return emailService.getEmailByUidInOutbox(uid);
-    }
-
-    @GetMapping("/fetch/trash/{uid}")
-    public String getEmailByUidInTrash(@PathVariable("uid") long uid) {
-        return emailService.getEmailByUidInTrash(uid);
-    }
-
-    @GetMapping("/fetch/drafts/{uid}")
-    public String getEmailByUidInDrafts(@PathVariable("uid") long uid) {
-        return emailService.getEmailByUidInDrafts(uid);
-    }
-
-    // ---------------------------
 
     @GetMapping("/inbox/status")
     public String fetchInboxStatus(@RequestParam("isRead") boolean isRead) {

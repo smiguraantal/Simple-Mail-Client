@@ -47,9 +47,6 @@ public class EmailService {
     private final static int EMAIL_FETCH_LIMIT = 3;
 
     public static final String FOLDER_INBOX = "INBOX";
-    public static final String FOLDER_OUTBOX = "[Gmail]/Sent Mail";
-    public static final String FOLDER_TRASH = "[Gmail]/Trash";
-    public static final String FOLDER_DRAFTS = "[Gmail]/Drafts";
 
     @Autowired
     public EmailService(JavaMailSender mailSender) {
@@ -155,23 +152,7 @@ public class EmailService {
         }
     }
 
-    public String getEmailByUidInInbox(long uid) {
-        return getEmailByUid(uid, FOLDER_INBOX);
-    }
-
-    public String getEmailByUidInOutbox(long uid) {
-        return getEmailByUid(uid, FOLDER_OUTBOX);
-    }
-
-    public String getEmailByUidInTrash(long uid) {
-        return getEmailByUid(uid, FOLDER_TRASH);
-    }
-
-    public String getEmailByUidInDrafts(long uid) {
-        return getEmailByUid(uid, FOLDER_DRAFTS);
-    }
-
-    public String getEmailByUid(long uid, String folderName) {
+    public String getEmailByUidInFolder(long uid, String folderName) {
         try {
             IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
             Message message = folder.getMessageByUID(uid);
