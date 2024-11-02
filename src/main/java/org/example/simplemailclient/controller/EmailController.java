@@ -81,8 +81,8 @@ public class EmailController {
         return emailService.fetchEmailsFromFolderByReadStatus(folder, isRead);
     }
 
-    @GetMapping("/fetch/inbox/text/{uid}")
-    public String getTextByUidInInbox(@PathVariable("uid") long uid) {
-        return emailService.getTextByUidInInbox(uid);
+    @GetMapping("/fetch/inbox/html-content/{uid}")
+    public String getHtmlContentByUidInInbox(@PathVariable("uid") long uid) {
+        return emailService.getHtmlContentByUidInInbox(uid);
     }
 }

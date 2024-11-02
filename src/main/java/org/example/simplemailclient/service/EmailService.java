@@ -20,7 +20,6 @@ import org.example.simplemailclient.dto.EmailRequest;
 import org.example.simplemailclient.dto.EmailResponse;
 import org.example.simplemailclient.exception.EmailSendingException;
 import org.example.simplemailclient.util.MailUtil;
-import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -60,7 +59,7 @@ public class EmailService {
     public void sendEmail(EmailRequest emailRequest) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            MimeMessageHelper helper = new MimeMessageHelper(message, false);
 
             helper.setTo(emailRequest.getTo().toArray(new String[0]));
 
@@ -73,7 +72,7 @@ public class EmailService {
             }
 
             helper.setSubject(emailRequest.getSubject());
-            helper.setText(emailRequest.getText(), false);
+            helper.setText(emailRequest.getText(), true);
 
             mailSender.send(message);
         } catch (MessagingException e) {
@@ -253,16 +252,16 @@ public class EmailService {
         return attachments;
     }
 
-    public String getTextByUidInInbox(long uid) {
-        return getTextByUid(uid, FOLDER_INBOX);
+    public String getHtmlContentByUidInInbox(long uid) {
+        return getHtmlContentByUid(uid, FOLDER_INBOX);
     }
 
-    public String getTextByUid(long uid, String folderName) {
+    public String getHtmlContentByUid(long uid, String folderName) {
         try {
             IMAPFolder folder = openFolder(folderName);
             Message message = folder.getMessageByUID(uid);
 
-            String body = getTextFromMessage(message);
+            String body = getHtmlContentFromMessage(message);
 
             folder.close(false);
 
@@ -272,33 +271,15 @@ public class EmailService {
         }
     }
 
-    public String getTextFromMessage(Part part) throws MessagingException, IOException {
-        StringBuilder textContent = new StringBuilder();
-
-        if (part.isMimeType("text/plain") && part.getFileName() == null) {
-            textContent.append(part.getContent().toString());
-        } else if (part.isMimeType("text/html") && part.getFileName() == null) {
-            String html = part.getContent().toString();
-            textContent.append(Jsoup.parse(html).text());
-        } else if (part.isMimeType("multipart/*")) {
-            Multipart multipart = (Multipart) part.getContent();
-
-            for (int i = 0; i < multipart.getCount(); i++) {
-                BodyPart bodyPart = multipart.getBodyPart(i);
-                if (bodyPart.getFileName() == null) {
-                    String partText = getTextFromMessage(bodyPart);
-                    if (partText != null && !partText.isEmpty()) {
-                        if (textContent.indexOf(partText) == -1) {
-                            textContent.append(partText).append("\n");
-                        }
-                    }
-                }
+    public String getHtmlContentFromMessage(Message message) {
+        try {
+            if (message.isMimeType("text/html")) {
+                return (String) message.getContent();
+            } else {
+                throw new IllegalArgumentException("Message content is not HTML.");
             }
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving HTML content from message: " + e.getMessage(), e);
         }
-        return textContent.toString().trim();
     }
-
-
-
-
 }
