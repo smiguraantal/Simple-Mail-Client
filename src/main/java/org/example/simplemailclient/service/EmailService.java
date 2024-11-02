@@ -62,7 +62,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-            helper.setTo(emailRequest.getTo());
+            helper.setTo(emailRequest.getTo().toArray(new String[0]));
             helper.setSubject(emailRequest.getSubject());
             helper.setText(emailRequest.getText(), false);
 
