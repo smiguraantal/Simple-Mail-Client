@@ -98,7 +98,7 @@ public class EmailService {
 
     private String fetchEmailsFromFolder(String folderName) {
         try {
-            IMAPFolder folder = openFolder(folderName);
+            IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
             Message[] messages = folder.getMessages();
             List<EmailResponse> emailList = new ArrayList<>();
 
@@ -123,7 +123,7 @@ public class EmailService {
 
     public String fetchInboxStatus(boolean isRead) {
         try {
-            IMAPFolder folder = openFolder("INBOX");
+            IMAPFolder folder = openFolder("INBOX", Folder.READ_ONLY);
 
             FlagTerm unseenFlagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), isRead);
 
@@ -146,7 +146,7 @@ public class EmailService {
 
     public String fetchEmailsFromFolderByReadStatus(String folderName, boolean isRead) {
         try {
-            IMAPFolder folder = openFolder(folderName);
+            IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
 
             FlagTerm unseenFlagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), isRead);
 
@@ -189,7 +189,7 @@ public class EmailService {
 
     public String getEmailByUid(long uid, String folderName) {
         try {
-            IMAPFolder folder = openFolder(folderName);
+            IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
             Message message = folder.getMessageByUID(uid);
             EmailResponse email = createEmailResponse(message, folder);
 
@@ -202,7 +202,7 @@ public class EmailService {
         }
     }
 
-    private IMAPFolder openFolder(String folderName) throws MessagingException {
+    private IMAPFolder openFolder(String folderName, int folderAccessMode ) throws MessagingException {
         Properties properties = new Properties();
         properties.put("mail.store.protocol", "imaps");
         Session session = Session.getDefaultInstance(properties);
@@ -212,7 +212,7 @@ public class EmailService {
         MailUtil.printAllFolders(store);
 
         IMAPFolder folder = (IMAPFolder) store.getFolder(folderName);
-        folder.open(Folder.READ_ONLY);
+        folder.open(folderAccessMode );
         return folder;
     }
 
@@ -258,7 +258,7 @@ public class EmailService {
 
     public String getHtmlContentByUid(long uid, String folderName) {
         try {
-            IMAPFolder folder = openFolder(folderName);
+            IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
             Message message = folder.getMessageByUID(uid);
 
             String body = getHtmlContentFromMessage(message);
@@ -282,4 +282,18 @@ public class EmailService {
             throw new RuntimeException("Error retrieving HTML content from message: " + e.getMessage(), e);
         }
     }
+
+    public void setReadStatus(long uid, String folderName, boolean seen) {
+        try {
+            IMAPFolder folder = openFolder(folderName, Folder.READ_WRITE);
+            Message message = folder.getMessageByUID(uid);
+
+            message.setFlag(Flags.Flag.SEEN, seen);
+
+            folder.close(false);
+        } catch (Exception e) {
+            throw new RuntimeException("Error marking email as " + (seen ? "read" : "unread") + ": " + e.getMessage(), e);
+        }
+    }
+
 }

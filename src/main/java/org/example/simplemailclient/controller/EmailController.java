@@ -85,4 +85,13 @@ public class EmailController {
     public String getHtmlContentByUidInInbox(@PathVariable("uid") long uid) {
         return emailService.getHtmlContentByUidInInbox(uid);
     }
+
+    @PostMapping("/set-read-status/{uid}")
+    public ResponseEntity<String> setReadStatus(
+            @PathVariable("uid") long uid,
+            @RequestParam("folder") String folder,
+            @RequestParam("seen") boolean seen) {
+        emailService.setReadStatus(uid, folder, seen);
+        return ResponseEntity.ok("Email marked as " + (seen ? "read" : "unread"));
+    }
 }
