@@ -68,6 +68,10 @@ public class EmailService {
                 helper.setCc(emailRequest.getCc().toArray(new String[0]));
             }
 
+            if (emailRequest.getBcc() != null && !emailRequest.getBcc().isEmpty()) {
+                helper.setBcc(emailRequest.getBcc().toArray(new String[0]));
+            }
+
             helper.setSubject(emailRequest.getSubject());
             helper.setText(emailRequest.getText(), false);
 
