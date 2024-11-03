@@ -4,6 +4,7 @@ import org.example.simplemailclient.dto.EmailRequest;
 import org.example.simplemailclient.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,5 +57,13 @@ public class EmailController {
             @RequestParam("seen") boolean seen) {
         emailService.setReadStatus(uid, folder, seen);
         return ResponseEntity.ok("Email marked as " + (seen ? "read" : "unread"));
+    }
+
+    @DeleteMapping("/delete/{uid}")
+    public ResponseEntity<String> deleteEmail(
+            @PathVariable("uid") long uid,
+            @RequestParam("folderName") String folderName) {
+        String result = emailService.deleteEmailByUID(uid, folderName);
+        return ResponseEntity.ok(result);
     }
 }

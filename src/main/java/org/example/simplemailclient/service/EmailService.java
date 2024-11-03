@@ -45,6 +45,8 @@ public class EmailService {
 
     private final static int EMAIL_FETCH_LIMIT = 3;
 
+    public static final String FOLDER_TRASH = "[Gmail]/Trash";
+
     @Autowired
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
@@ -211,6 +213,28 @@ public class EmailService {
             folder.close(false);
         } catch (Exception e) {
             throw new RuntimeException("Error marking email as " + (seen ? "read" : "unread") + ": " + e.getMessage(), e);
+        }
+    }
+
+    public String deleteEmailByUID(long uid, String folderName) {
+        try {
+            IMAPFolder folder = openFolder(folderName, Folder.READ_WRITE);
+            Message message = folder.getMessageByUID(uid);
+
+            if (message == null) return "Email not found.";
+
+            IMAPFolder trashFolder = openFolder(FOLDER_TRASH, Folder.READ_WRITE);
+            trashFolder.appendMessages(new Message[]{message});
+
+            message.setFlag(Flags.Flag.DELETED, true);
+            folder.expunge();
+            folder.close(false);
+
+            trashFolder.close(false);
+            return "Email successfully moved to Trash.";
+
+        } catch (MessagingException e) {
+            return "Error while deleting email: " + e.getMessage();
         }
     }
 }
