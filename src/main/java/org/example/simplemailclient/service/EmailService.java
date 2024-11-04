@@ -126,7 +126,7 @@ public class EmailService {
         }
     }
 
-    private IMAPFolder openFolder(String folderName, int folderAccessMode ) throws MessagingException {
+    private IMAPFolder openFolder(String folderName, int folderAccessMode) throws MessagingException {
         Properties properties = new Properties();
         properties.put("mail.store.protocol", "imaps");
         Session session = Session.getDefaultInstance(properties);
@@ -136,7 +136,7 @@ public class EmailService {
         MailUtil.printAllFolders(store);
 
         IMAPFolder folder = (IMAPFolder) store.getFolder(folderName);
-        folder.open(folderAccessMode );
+        folder.open(folderAccessMode);
         return folder;
     }
 
@@ -203,7 +203,7 @@ public class EmailService {
         }
     }
 
-    public void setReadStatus(long uid, String folderName, boolean seen) {
+    public void updateReadStatus(long uid, String folderName, boolean seen) {
         try {
             IMAPFolder folder = openFolder(folderName, Folder.READ_WRITE);
             Message message = folder.getMessageByUID(uid);
@@ -215,6 +215,22 @@ public class EmailService {
             throw new RuntimeException("Error marking email as " + (seen ? "read" : "unread") + ": " + e.getMessage(), e);
         }
     }
+
+    public void updateReadStatusForMultipleMessages(List<Long> uids, String folderName, boolean seen) {
+        try {
+            IMAPFolder folder = openFolder(folderName, Folder.READ_WRITE);
+
+            for (Long uid : uids) {
+                Message message = folder.getMessageByUID(uid);
+                message.setFlag(Flags.Flag.SEEN, seen);
+            }
+
+            folder.close(false);
+        } catch (Exception e) {
+            throw new RuntimeException("Error marking emails as " + (seen ? "read" : "unread") + ": " + e.getMessage(), e);
+        }
+    }
+
 
     public String deleteEmailByUID(long uid, String folderName) {
         try {

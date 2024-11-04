@@ -2,6 +2,7 @@ package org.example.simplemailclient.controller;
 
 import org.example.simplemailclient.dto.DeleteRequest;
 import org.example.simplemailclient.dto.EmailRequest;
+import org.example.simplemailclient.dto.ReadStatusUpdateRequest;
 import org.example.simplemailclient.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -51,11 +52,17 @@ public class EmailController {
         return ResponseEntity.ok("Email sent successfully!");
     }
 
-    @PostMapping("/set-read-status/{uid}")
-    public ResponseEntity<String> setReadStatus(
+    @PostMapping("/update-read-status/{uid}")
+    public ResponseEntity<String> updateReadStatus(
             @PathVariable("uid") long uid, @RequestParam("folder") String folder, @RequestParam("seen") boolean seen) {
-        emailService.setReadStatus(uid, folder, seen);
+        emailService.updateReadStatus(uid, folder, seen);
         return ResponseEntity.ok("Email marked as " + (seen ? "read" : "unread"));
+    }
+
+    @PostMapping("/update-read-status-multiple")
+    public ResponseEntity<String> updateReadStatusForMultipleMessages(@RequestBody ReadStatusUpdateRequest request) {
+        emailService.updateReadStatusForMultipleMessages(request.getUids(), request.getFolderName(), request.isSeen());
+        return ResponseEntity.ok("Read status updated successfully for specified messages.");
     }
 
     @DeleteMapping("/delete/{uid}")

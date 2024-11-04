@@ -9,8 +9,9 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeleteRequest {
+public class ReadStatusUpdateRequest {
 
     private List<Long> uids;
     private String folderName;
+    private boolean seen;
 }
