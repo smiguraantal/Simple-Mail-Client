@@ -43,7 +43,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    private final static int EMAIL_FETCH_LIMIT = 3;
+    private final static int EMAIL_FETCH_LIMIT = 5;
 
     public static final String FOLDER_TRASH = "[Gmail]/Trash";
 
@@ -226,7 +226,6 @@ public class EmailService {
             IMAPFolder trashFolder = openFolder(FOLDER_TRASH, Folder.READ_WRITE);
             trashFolder.appendMessages(new Message[]{message});
 
-            message.setFlag(Flags.Flag.DELETED, true);
             folder.expunge();
             folder.close(false);
 
@@ -237,4 +236,33 @@ public class EmailService {
             return "Error while deleting email: " + e.getMessage();
         }
     }
+
+    public String deleteEmailsByUIDs(List<Long> uids, String folderName) {
+        StringBuilder result = new StringBuilder();
+        try {
+            IMAPFolder folder = openFolder(folderName, Folder.READ_WRITE);
+            IMAPFolder trashFolder = openFolder(FOLDER_TRASH, Folder.READ_WRITE);
+
+            for (Long uid : uids) {
+                Message message = folder.getMessageByUID(uid);
+
+                if (message == null) {
+                    result.append("Email with UID ").append(uid).append(" not found.\n");
+                    continue;
+                }
+
+                trashFolder.appendMessages(new Message[]{message});
+            }
+
+            folder.expunge();
+            folder.close(false);
+            trashFolder.close(false);
+
+            return result.isEmpty() ? "Emails successfully moved to Trash." : result.toString();
+
+        } catch (MessagingException e) {
+            return "Error while deleting emails: " + e.getMessage();
+        }
+    }
+
 }

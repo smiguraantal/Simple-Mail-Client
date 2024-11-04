@@ -1,5 +1,6 @@
 package org.example.simplemailclient.controller;
 
+import org.example.simplemailclient.dto.DeleteRequest;
 import org.example.simplemailclient.dto.EmailRequest;
 import org.example.simplemailclient.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,18 +53,18 @@ public class EmailController {
 
     @PostMapping("/set-read-status/{uid}")
     public ResponseEntity<String> setReadStatus(
-            @PathVariable("uid") long uid,
-            @RequestParam("folder") String folder,
-            @RequestParam("seen") boolean seen) {
+            @PathVariable("uid") long uid, @RequestParam("folder") String folder, @RequestParam("seen") boolean seen) {
         emailService.setReadStatus(uid, folder, seen);
         return ResponseEntity.ok("Email marked as " + (seen ? "read" : "unread"));
     }
 
     @DeleteMapping("/delete/{uid}")
-    public ResponseEntity<String> deleteEmail(
-            @PathVariable("uid") long uid,
-            @RequestParam("folderName") String folderName) {
-        String result = emailService.deleteEmailByUID(uid, folderName);
-        return ResponseEntity.ok(result);
+    public String deleteEmail(@PathVariable("uid") long uid, @RequestParam("folderName") String folderName) {
+        return emailService.deleteEmailByUID(uid, folderName);
+    }
+
+    @DeleteMapping("/delete-multiple")
+    public String deleteEmails(@RequestBody DeleteRequest deleteRequest) {
+        return emailService.deleteEmailsByUIDs(deleteRequest.getUids(), deleteRequest.getFolderName());
     }
 }
