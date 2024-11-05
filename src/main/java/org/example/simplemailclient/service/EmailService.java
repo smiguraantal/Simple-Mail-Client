@@ -209,6 +209,26 @@ public class EmailService {
         }
     }
 
+    public void saveAllAttachments(String folderName, long uid) {
+        try {
+            IMAPFolder folder = openFolder(folderName, IMAPFolder.READ_ONLY);
+            Message message = folder.getMessageByUID(uid);
+
+            if (message.isMimeType("multipart/*")) {
+                Multipart multipart = (Multipart) message.getContent();
+                List<BodyPart> attachmentParts = getAttachments(multipart);
+
+                for (BodyPart bodyPart : attachmentParts) {
+                    saveAttachmentToFile(bodyPart);
+                }
+            }
+
+            folder.close(false);
+        } catch (IOException | MessagingException e) {
+            throw new RuntimeException("Failed to save attachments", e);
+        }
+    }
+
     private void saveAttachmentToFile(BodyPart bodyPart) throws IOException, MessagingException {
         InputStream inputStream = bodyPart.getInputStream();
         File tempFile = new File(System.getProperty("user.home") + "/Documents/" + bodyPart.getFileName() + getFileExtension(bodyPart.getFileName()));

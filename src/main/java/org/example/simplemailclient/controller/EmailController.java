@@ -53,6 +53,11 @@ public class EmailController {
         emailService.saveAttachment(folderName, uid, attachmentIndex);
     }
 
+    @GetMapping("/save-all-attachments")
+    public void saveAllAttachments(@RequestParam("folderName") String folderName, @RequestParam("uid") long uid) {
+        emailService.saveAllAttachments(folderName, uid);
+    }
+
     // ------------- POST ENDPOINTS -------------
 
     @PostMapping("/send")
