@@ -25,7 +25,10 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -174,6 +177,57 @@ public class EmailService {
             }
         }
         return attachments;
+    }
+
+    private List<BodyPart> getAttachments(Multipart multipart) throws MessagingException {
+        List<BodyPart> attachmentParts = new ArrayList<>();
+
+        for (int i = 0; i < multipart.getCount(); i++) {
+            BodyPart bodyPart = multipart.getBodyPart(i);
+            if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())) {
+                attachmentParts.add(bodyPart);
+            }
+        }
+
+        return attachmentParts;
+    }
+
+    public void saveAttachment(String folderName, long uid, int attachmentIndex) {
+        try {
+            IMAPFolder folder = openFolder(folderName, IMAPFolder.READ_ONLY);
+            Message message = folder.getMessageByUID(uid);
+            if (message.isMimeType("multipart/*")) {
+                Multipart multipart = (Multipart) message.getContent();
+                List<BodyPart> attachmentParts = getAttachments(multipart);
+                BodyPart bodyPart = attachmentParts.get(attachmentIndex);
+
+                saveAttachmentToFile(bodyPart);
+            }
+            folder.close(false);
+        } catch (IOException | MessagingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void saveAttachmentToFile(BodyPart bodyPart) throws IOException, MessagingException {
+        InputStream inputStream = bodyPart.getInputStream();
+        File tempFile = new File(System.getProperty("user.home") + "/Documents/" + bodyPart.getFileName() + getFileExtension(bodyPart.getFileName()));
+        tempFile.deleteOnExit();
+
+        try (FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        }
+    }
+
+    private String getFileExtension(String fileName) {
+        if (fileName != null && fileName.lastIndexOf('.') > 0) {
+            return fileName.substring(fileName.lastIndexOf('.'));
+        }
+        return "";
     }
 
     public String getHtmlContentByUid(long uid, String folderName) {

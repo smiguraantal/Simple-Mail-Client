@@ -26,6 +26,8 @@ public class EmailController {
         this.emailService = emailService;
     }
 
+    // ------------- GET ENDPOINTS -------------
+
     @GetMapping("/folder")
     public String fetchEmailsFromFolder(@RequestParam("folderName") String folderName) {
         return emailService.fetchEmailsFromFolder(folderName);
@@ -46,6 +48,13 @@ public class EmailController {
         return emailService.getHtmlContentByUid(uid, folderName);
     }
 
+    @GetMapping("/save-attachment")
+    public void saveAttachment(@RequestParam("folderName") String folderName, @RequestParam("uid") long uid, @RequestParam("attachmentIndex") int attachmentIndex) {
+        emailService.saveAttachment(folderName, uid, attachmentIndex);
+    }
+
+    // ------------- POST ENDPOINTS -------------
+
     @PostMapping("/send")
     public ResponseEntity<String> sendEmail(@RequestBody EmailRequest emailRequest) {
         emailService.sendEmail(emailRequest);
@@ -64,6 +73,8 @@ public class EmailController {
         emailService.updateReadStatusForMultipleMessages(request.getUids(), request.getFolderName(), request.isSeen());
         return ResponseEntity.ok("Read status updated successfully for specified messages.");
     }
+
+    // ------------- DELETE ENDPOINTS -----------
 
     @DeleteMapping("/delete/{uid}")
     public String deleteEmail(@PathVariable("uid") long uid, @RequestParam("folderName") String folderName) {
