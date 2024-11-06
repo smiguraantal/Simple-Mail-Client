@@ -2,6 +2,7 @@ package org.example.simplemailclient.controller;
 
 import org.example.simplemailclient.dto.DeleteRequest;
 import org.example.simplemailclient.dto.EmailRequest;
+import org.example.simplemailclient.dto.EmailResponse;
 import org.example.simplemailclient.dto.ReadStatusUpdateRequest;
 import org.example.simplemailclient.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/email")
@@ -56,6 +59,11 @@ public class EmailController {
     @GetMapping("/save-all-attachments")
     public void saveAllAttachments(@RequestParam("folderName") String folderName, @RequestParam("uid") long uid) {
         emailService.saveAllAttachments(folderName, uid);
+    }
+
+    @GetMapping("/search")
+    public List<EmailResponse> searchEmailsBySubject(@RequestParam("folderName") String folderName, @RequestParam("keyword") String keyword) {
+        return emailService.searchEmailsBySubject(folderName, keyword);
     }
 
     // ------------- POST ENDPOINTS -------------

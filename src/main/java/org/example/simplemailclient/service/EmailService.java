@@ -15,6 +15,7 @@ import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.search.FlagTerm;
+import jakarta.mail.search.SubjectTerm;
 import org.example.simplemailclient.dto.EmailRequest;
 import org.example.simplemailclient.dto.EmailResponse;
 import org.example.simplemailclient.exception.EmailSendingException;
@@ -31,7 +32,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -355,4 +358,34 @@ public class EmailService {
         }
     }
 
+    public List<EmailResponse> searchEmailsBySubject(String folderName, String keyword) {
+        List<EmailResponse> results = new ArrayList<>();
+        try {
+            IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
+
+            SubjectTerm subjectTerm = new SubjectTerm(keyword);
+
+            Message[] messages = folder.search(subjectTerm);
+
+            results = Arrays.stream(messages)
+                    .limit(EMAIL_FETCH_LIMIT)
+                    .map(message -> {
+                        try {
+                            return createEmailResponse(message, folder);
+                        } catch (MessagingException | IOException e) {
+                            e.printStackTrace();
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            Collections.reverse(results);
+
+            folder.close(false);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
 }
