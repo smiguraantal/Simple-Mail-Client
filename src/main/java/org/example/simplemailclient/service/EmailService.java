@@ -146,19 +146,24 @@ public class EmailService {
         return folder;
     }
 
-    private EmailResponse createEmailResponse(Message message, IMAPFolder folder) throws MessagingException, IOException {
-        EmailResponse email = new EmailResponse();
-        long uid = folder.getUID(message);
-        email.setUid(uid);
-        email.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());
-        email.setTo(getAddressesAsString(message.getRecipients(Message.RecipientType.TO)));
-        email.setCc(getAddressesAsString(message.getRecipients(Message.RecipientType.CC)));
-        email.setBcc(getAddressesAsString(message.getRecipients(Message.RecipientType.BCC)));
-        email.setSubject(message.getSubject());
-        email.setSentDate(message.getSentDate() != null ? message.getSentDate().toString() : null);
-        email.setReceivedDate(message.getReceivedDate() != null ? message.getReceivedDate().toString() : null);
-        email.setAttachments(getAttachments(message));
-        return email;
+    private EmailResponse createEmailResponse(Message message, IMAPFolder folder) {
+        try {
+            EmailResponse email = new EmailResponse();
+            long uid = folder.getUID(message);
+            email.setUid(uid);
+            email.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());
+            email.setTo(getAddressesAsString(message.getRecipients(Message.RecipientType.TO)));
+            email.setCc(getAddressesAsString(message.getRecipients(Message.RecipientType.CC)));
+            email.setBcc(getAddressesAsString(message.getRecipients(Message.RecipientType.BCC)));
+            email.setSubject(message.getSubject());
+            email.setSentDate(message.getSentDate() != null ? message.getSentDate().toString() : null);
+            email.setReceivedDate(message.getReceivedDate() != null ? message.getReceivedDate().toString() : null);
+            email.setAttachments(getAttachments(message));
+            return email;
+        } catch (MessagingException | IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private String getAddressesAsString(Address[] addresses) {
@@ -369,14 +374,7 @@ public class EmailService {
 
             results = Arrays.stream(messages)
                     .limit(EMAIL_FETCH_LIMIT)
-                    .map(message -> {
-                        try {
-                            return createEmailResponse(message, folder);
-                        } catch (MessagingException | IOException e) {
-                            e.printStackTrace();
-                            return null;
-                        }
-                    })
+                    .map(message -> createEmailResponse(message, folder))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
