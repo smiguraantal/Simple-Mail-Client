@@ -85,8 +85,16 @@ public class EmailService {
     public String fetchEmailsFromFolder(String folderName) {
         try {
             IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
-            Message[] messages = folder.getMessages();
-            return convertMessagesToJson(messages, folder);
+
+            int messageCount = folder.getMessageCount();
+            int start = Math.max(1, messageCount - EMAIL_FETCH_LIMIT + 1);
+
+            Message[] messages = folder.getMessages(start, messageCount);
+
+            List<Message> messageList = Arrays.asList(messages);
+            Collections.reverse(messageList);
+
+            return convertMessagesToJson(messageList, folder);
         } catch (MessagingException | IOException e) {
             throw new RuntimeException("Error fetching emails from " + folderName + ": " + e.getMessage(), e);
         }
@@ -97,25 +105,28 @@ public class EmailService {
             IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
             FlagTerm flagTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), seen);
             Message[] messages = folder.search(flagTerm);
-            return convertMessagesToJson(messages, folder);
+
+            List<Message> messageList = Arrays.asList(messages);
+            Collections.reverse(messageList);
+
+            int limit = Math.min(EMAIL_FETCH_LIMIT, messageList.size());
+            messageList = messageList.subList(0, limit);
+
+            return convertMessagesToJson(messageList, folder);
         } catch (MessagingException | IOException e) {
             throw new RuntimeException("Error fetching emails from " + folderName + ": " + e.getMessage(), e);
         }
     }
 
-    private String convertMessagesToJson(Message[] messages, IMAPFolder folder) throws MessagingException, IOException {
-        List<EmailResponse> emailList = new ArrayList<>();
-
-        for (int i = messages.length - 1; i >= Math.max(messages.length - EMAIL_FETCH_LIMIT, 0); i--) {
-            EmailResponse email = createEmailResponse(messages[i], folder);
-            emailList.add(email);
-        }
-
-        folder.close(false);
+    private String convertMessagesToJson(List<Message> messages, IMAPFolder folder) throws MessagingException, IOException {
+        List<EmailResponse> emailList = messages.stream()
+                .map(message -> createEmailResponse(message, folder))
+                .collect(Collectors.toList());
 
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(emailList);
     }
+
 
     public String getEmailByUidInFolder(long uid, String folderName) {
         try {
