@@ -12,12 +12,17 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
 import jakarta.mail.Session;
+import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.search.FlagTerm;
+import jakarta.mail.search.FromTerm;
+import jakarta.mail.search.RecipientTerm;
+import jakarta.mail.search.SearchTerm;
 import jakarta.mail.search.SubjectTerm;
 import org.example.simplemailclient.dto.EmailRequest;
 import org.example.simplemailclient.dto.EmailResponse;
+import org.example.simplemailclient.enumeration.SearchField;
 import org.example.simplemailclient.exception.EmailSendingException;
 import org.example.simplemailclient.util.MailUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -374,22 +379,27 @@ public class EmailService {
         }
     }
 
-    public List<EmailResponse> searchEmailsBySubject(String folderName, String keyword) {
+    public List<EmailResponse> searchEmails(String folderName, String keyword, SearchField field) {
         List<EmailResponse> results = new ArrayList<>();
         try {
             IMAPFolder folder = openFolder(folderName, Folder.READ_ONLY);
 
-            SubjectTerm subjectTerm = new SubjectTerm(keyword);
+            SearchTerm searchTerm = switch (field) {
+                case SUBJECT -> new SubjectTerm(keyword);
+                case TO -> new RecipientTerm(Message.RecipientType.TO, new InternetAddress(keyword));
+                case FROM -> new FromTerm(new InternetAddress(keyword));
+            };
 
-            Message[] messages = folder.search(subjectTerm);
+            Message[] messages = folder.search(searchTerm);
 
-            results = Arrays.stream(messages)
+            List<Message> messageList = Arrays.asList(messages);
+            Collections.reverse(messageList);
+
+            results = messageList.stream()
                     .limit(EMAIL_FETCH_LIMIT)
                     .map(message -> createEmailResponse(message, folder))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
-
-            Collections.reverse(results);
 
             folder.close(false);
         } catch (MessagingException e) {
