@@ -12,7 +12,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
 import jakarta.mail.Session;
-import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.search.FlagTerm;
@@ -388,6 +387,8 @@ public class EmailService {
                 case SUBJECT -> new SubjectTerm(keyword);
                 case TO -> new RecipientTerm(Message.RecipientType.TO, new InternetAddress(keyword));
                 case FROM -> new FromTerm(new InternetAddress(keyword));
+                case CC -> new RecipientTerm(Message.RecipientType.CC, new InternetAddress(keyword));
+                case BCC -> new RecipientTerm(Message.RecipientType.BCC, new InternetAddress(keyword));
             };
 
             Message[] messages = folder.search(searchTerm);

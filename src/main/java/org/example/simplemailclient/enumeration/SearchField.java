@@ -4,5 +4,7 @@ public enum SearchField {
 
     SUBJECT,
     TO,
-    FROM
+    FROM,
+    CC,
+    BCC
 }

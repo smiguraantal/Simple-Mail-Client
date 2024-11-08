@@ -35,9 +35,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.guicedee.services</groupId>
+            <groupId>com.sun.mail</groupId>
             <artifactId>jakarta.mail</artifactId>
-            <version>1.2.2.1</version>
+            <version>2.0.1</version>
         </dependency>
 
         <dependency>
